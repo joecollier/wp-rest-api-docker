@@ -1,0 +1,62 @@
+version: '2.1'
+services:
+  wordpress:
+    container_name: wordpress.wp
+    depends_on:
+      - db
+    image: wordpress:4.8.1
+    restart: always
+    volumes:
+      - ./wp-content:/var/www/html/wp-content
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_PASSWORD: p4ssw0rd!
+    ports:
+      - 80:80 # Expose http and https
+      - 443:443
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:80"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - back
+  db:
+    container_name: db.wp
+    image: mysql:5.7
+    restart: always
+    ports:
+      - "3306:3306"
+    volumes:
+       - db_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: p4ssw0rd!
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:3306"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - back
+  phpmyadmin:
+    container_name: phpmyadmin.wp
+    depends_on:
+      - db
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    ports:
+      - 8080:80
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: p4ssw0rd!
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:8080"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - back
+networks:
+  back:
+volumes:
+  db_data:
